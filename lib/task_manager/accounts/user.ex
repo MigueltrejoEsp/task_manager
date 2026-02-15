@@ -165,8 +165,13 @@ defmodule TaskManager.Accounts.User do
         sensitive? true
       end
 
+      argument :organization_id, :uuid do
+        allow_nil? false
+      end
+
       # Sets the email from the argument
       change set_attribute(:email, arg(:email))
+      change set_attribute(:organization_id, arg(:organization_id))
 
       # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
@@ -273,6 +278,14 @@ defmodule TaskManager.Accounts.User do
       authorize_if always()
     end
   end
+
+  relationships do
+    belongs_to :organization, TaskManager.Organizations.Organization do
+      allow_nil? false
+      public? true
+    end
+  end
+
 
   attributes do
     uuid_primary_key :id
