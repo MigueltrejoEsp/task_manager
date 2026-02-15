@@ -14,7 +14,8 @@ defmodule TaskManager.Repo.Migrations.AddedOrgId do
             column: :id,
             name: "users_organization_id_fkey",
             type: :uuid
-          ), null: false
+          ),
+          null: false
     end
   end
 

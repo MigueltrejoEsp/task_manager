@@ -53,26 +53,39 @@ defmodule TaskManager.Organizations.Organization do
               name = Ash.Changeset.get_attribute(changeset, :name)
               slug = name |> String.downcase() |> String.replace(" ", "-")
               Ash.Changeset.change_attribute(changeset, :slug, slug)
+
             _ ->
               changeset
           end
 
-          changeset
-          |> Ash.Changeset.after_action(fn _changeset, org ->
-            user_params = %{
-              email: owner_params["email"] || owner_params[:email],
-              password: owner_params["password"] || owner_params[:password],
-              password_confirmation: owner_params["password_confirmation"] || owner_params[:password_confirmation],
-              organization_id: org.id
-            }
-            with {:ok, user} <- Ash.create(TaskManager.Accounts.User, user_params, action: :register_with_password, authorize?: false),
-          {:ok, final_org} <- Ash.update(org, %{owner_id: user.id}, authorize?: false) do
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, org ->
+          user_params = %{
+            email: owner_params["email"] || owner_params[:email],
+            password: owner_params["password"] || owner_params[:password],
+            password_confirmation:
+              owner_params["password_confirmation"] || owner_params[:password_confirmation],
+            organization_id: org.id
+          }
+
+          with {:ok, user} <-
+                 Ash.create(TaskManager.Accounts.User, user_params,
+                   action: :register_with_password,
+                   authorize?: false
+                 ),
+               {:ok, final_org} <- Ash.update(org, %{owner_id: user.id}, authorize?: false) do
             {:ok, final_org}
           else
             {:error, error} -> {:error, error}
           end
         end)
       end
+    end
+  end
+
+  policies do
+    bypass action(:register) do
+      authorize_if always()
     end
   end
 
@@ -85,10 +98,6 @@ defmodule TaskManager.Organizations.Organization do
     validate string_length(:name, min: 2, max: 100)
   end
 
-  identities do
-    identity :unique_slug, [:slug]
-  end
-
   attributes do
     uuid_primary_key :id
     attribute :name, :string
@@ -96,10 +105,12 @@ defmodule TaskManager.Organizations.Organization do
     attribute :plan, :atom
     attribute :max_users, :integer
     attribute :active, :boolean
+
     attribute :owner_id, :uuid do
       allow_nil? true
       public? true
     end
+
     timestamps()
   end
 
@@ -110,9 +121,7 @@ defmodule TaskManager.Organizations.Organization do
     end
   end
 
-  policies do
-    bypass action(:register) do
-      authorize_if always()
-    end
+  identities do
+    identity :unique_slug, [:slug]
   end
 end

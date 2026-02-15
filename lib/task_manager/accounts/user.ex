@@ -279,14 +279,6 @@ defmodule TaskManager.Accounts.User do
     end
   end
 
-  relationships do
-    belongs_to :organization, TaskManager.Organizations.Organization do
-      allow_nil? false
-      public? true
-    end
-  end
-
-
   attributes do
     uuid_primary_key :id
 
@@ -300,6 +292,13 @@ defmodule TaskManager.Accounts.User do
     end
 
     attribute :confirmed_at, :utc_datetime_usec
+  end
+
+  relationships do
+    belongs_to :organization, TaskManager.Organizations.Organization do
+      allow_nil? false
+      public? true
+    end
   end
 
   identities do
