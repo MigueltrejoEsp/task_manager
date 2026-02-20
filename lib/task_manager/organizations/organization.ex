@@ -73,6 +73,14 @@ defmodule TaskManager.Organizations.Organization do
                    action: :register_with_password,
                    authorize?: false
                  ),
+                 {:ok, _membership} <-
+                  Ash.create(TaskManager.Organizations.Membership, %{
+                    user_id: user.id,
+                    organization_id: org.id,
+                    role: :owner
+                  },
+                  tenant: org.id,
+                  authorize?: false),
                {:ok, final_org} <- Ash.update(org, %{owner_id: user.id}, authorize?: false) do
             {:ok, final_org}
           else
